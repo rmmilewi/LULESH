@@ -182,14 +182,14 @@ void VerifyAndWriteFinalOutput(Real_t elapsed_time,
    // GrindTime2 takes into account speedups from MPI parallelism.
    // Cast to 64-bit integer to avoid overflows.
    Int8_t nx8 = nx;
-   Real_t grindTime1 = ((elapsed_time*1e6)/locDom.cycle())/(nx8*nx8*nx8);
-   Real_t grindTime2 = ((elapsed_time*1e6)/locDom.cycle())/(nx8*nx8*nx8*numRanks);
+   Real_t grindTime1 = ((elapsed_time*1e6)/locDom.getIterationCount())/(nx8*nx8*nx8);
+   Real_t grindTime2 = ((elapsed_time*1e6)/locDom.getIterationCount())/(nx8*nx8*nx8*numRanks);
 
    Index_t ElemId = 0;
    std::cout << "Run completed:\n";
    std::cout << "   Problem size        =  " << nx       << "\n";
    std::cout << "   MPI tasks           =  " << numRanks << "\n";
-   std::cout << "   Iteration count     =  " << locDom.cycle() << "\n";
+   std::cout << "   Iteration count     =  " << locDom.getIterationCount() << "\n";
    std::cout << "   Final Origin Energy =  ";
    std::cout << std::scientific << std::setprecision(6);
    std::cout << std::setw(12) << locDom.e(ElemId) << "\n";

@@ -1,24 +1,38 @@
-This is the README for LULESH 2.0
+# reLULESH: A Refactor of LULESH
 
-More information including LULESH 1.0 can be found at https://codesign.llnl.gov/lulesh.php
+This is a demonstration of common software refactoring techniques applied to scientific C++ code. Refactoring is the act of improving the design of software without changing its behavior. 
 
-If you have any questions or problems please contact:
+The object of our study is LULESH, a widely-known proxy code for shock hydrodynamics developed at Lawrence Livermore National Laboratory. This project (reLULESH) is a fork of LULESH 2.0.1, and here we apply techniques from Bob Martin's magnum opus *Clean Code: A Handbook of Agile Software Craftsmanship*. We will provide a table of performance comparisons to showcase the cost-benefit trade-offs of performing different kinds of refactoring.
 
-Ian Karlin <karlin1@llnl.gov> or
-Rob Neely <neely4@llnl.gov>
+#### Contact Information
 
-Also please send any notable results to Ian Karlin <karlin1@llnl.gov> as we are still evaluating the performance of this code.
+Feel free to open an issue if you have any questions or comments!
+
+Want to get in touch with the original developers? Contact Ian Karlin (<karlin1@llnl.gov>) and/or Rob Neely (<neely4@llnl.gov>).
+
+#### References
+*Martin, Robert C. Clean code: a handbook of agile software craftsmanship. Pearson Education, 2009.*
+
+*I. Karlin, J. Keasler, R. Neely. LULESH 2.0 Updates and Changes. August 2013, pages 1-9*
+
+#### Note
+reLULESH represents a personal effort to learn and apply the principles and practices of software refactoring. I make no guarantees about the quality or correctness of the code provided here.
+
+### Build Instructions
 
 A Makefile and a CMake build system are provided.
 
-*** Building with CMake ***
+#### Building with CMake
 
 Create a build directory and run cmake. Example:
 
+```bash
   $ mkdir build; cd build; cmake -DCMAKE_BUILD_TYPE=Release -DMPI_CXX_COMPILER=`which mpicxx` ..
+```
 
 CMake variables:
 
+```cmake
   CMAKE_BUILD_TYPE      "Debug", "Release", or "RelWithDebInfo"
 
   CMAKE_CXX_COMPILER    Path to the C++ compiler
@@ -29,52 +43,4 @@ CMake variables:
   WITH_SILO=On|Off      Build with support for SILO. (Default: Off).
   
   SILO_DIR              Path to SILO library (only needed when WITH_SILO is "On")
-
-*** Notable changes in LULESH 2.0 ***
-
-Split functionality into different files
-lulesh.cc - where most (all?) of the timed functionality lies
-lulesh-comm.cc - MPI functionality
-lulesh-init.cc - Setup code
-lulesh-viz.cc  - Support for visualization option
-lulesh-util.cc - Non-timed functions
-
-The concept of "regions" was added, although every region is the same ideal gas material, and the same sedov blast wave problem is still the only problem its hardcoded to solve. Regions allow two things important to making this proxy app more representative:
-
-Four of the LULESH routines are now performed on a region-by-region basis, making the memory access patterns non-unit stride
-
-Artificial load imbalances can be easily introduced that could impact parallelization strategies.  
-   * The load balance flag changes region assignment.  Region number is raised to the power entered for assignment probability.  Most likely regions changes with MPI process id.
-   * The cost flag raises the cost of ~45% of the regions to evaluate EOS by the entered multiple.  The cost of 5% is 10x the entered
- multiple.
-
-MPI and OpenMP were added, and coalesced into a single version of the source that can support serial builds, MPI-only, OpenMP-only, and MPI+OpenMP
-
-Added support to write plot files using "poor mans parallel I/O" when linked with the silo library, which in turn can be read by VisIt.
-
-Enabled variable timestep calculation by default (courant condition), which results in an additional reduction.  Also, seeded the initial timestep based on analytical equation to allow scaling to arbitrary size.  Therefore steps to solution will differ from LULESH 1.0.
-
-Default domain (mesh) size reduced from 45^3 to 30^3
-
-Command line options to allow for numerous test cases without needing to recompile
-
-Performance optimizations and code cleanup uncovered during study of LULESH 1.0
-
-Added a "Figure of Merit" calculation (elements solved per microsecond) and output in support of using LULESH 2.0 for the 2017 CORAL procurement
-
-*** Notable changes in LULESH 2.1 ***
-
-Minor bug fixes.
-Code cleanup to add consitancy to variable names, loop indexing, memory allocation/deallocation, etc.
-Destructor added to main class to clean up when code exits.
-
-
-Possible Future 2.0 minor updates (other changes possible as discovered)
-
-* Different default parameters
-* Minor code performance changes and cleanupS
-
-TODO in future versions
-* Add reader for (truly) unstructured meshes, probably serial only
-
-
+```

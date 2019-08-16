@@ -166,20 +166,20 @@ Additional BSD Notice
 static inline
 void TimeIncrement(Domain& domain)
 {
-   Real_t targetdt = domain.stoptime() - domain.time() ;
+   Real_t targetdt = domain.getStopTime() - domain.getCurrentTime() ;
 
-   if ((domain.dtfixed() <= Real_t(0.0)) && (domain.cycle() != Int_t(0))) {
+   if ((domain.getFixedTimeIncrement() <= Real_t(0.0)) && (domain.getIterationCount() != Int_t(0))) {
       Real_t ratio ;
-      Real_t olddt = domain.deltatime() ;
+      Real_t olddt = domain.getDeltaTime() ;
 
       /* This will require a reduction in parallel */
       Real_t gnewdt = Real_t(1.0e+20) ;
       Real_t newdt ;
-      if (domain.dtcourant() < gnewdt) {
-         gnewdt = domain.dtcourant() / Real_t(2.0) ;
+      if (domain.getCourantConstraint() < gnewdt) {
+         gnewdt = domain.getCourantConstraint() / Real_t(2.0) ;
       }
-      if (domain.dthydro() < gnewdt) {
-         gnewdt = domain.dthydro() * Real_t(2.0) / Real_t(3.0) ;
+      if (domain.getVolumeChangeConstraint() < gnewdt) {
+         gnewdt = domain.getVolumeChangeConstraint() * Real_t(2.0) / Real_t(3.0) ;
       }
 
 #if USE_MPI      
@@ -200,25 +200,25 @@ void TimeIncrement(Domain& domain)
          }
       }
 
-      if (newdt > domain.dtmax()) {
-         newdt = domain.dtmax() ;
+      if (newdt > domain.getMaxAllowableTimeIncrement()) {
+         newdt = domain.getMaxAllowableTimeIncrement() ;
       }
-      domain.deltatime() = newdt ;
+      domain.getDeltaTime() = newdt ;
    }
 
    /* TRY TO PREVENT VERY SMALL SCALING ON THE NEXT CYCLE */
-   if ((targetdt > domain.deltatime()) &&
-       (targetdt < (Real_t(4.0) * domain.deltatime() / Real_t(3.0))) ) {
-      targetdt = Real_t(2.0) * domain.deltatime() / Real_t(3.0) ;
+   if ((targetdt > domain.getDeltaTime()) &&
+       (targetdt < (Real_t(4.0) * domain.getDeltaTime() / Real_t(3.0))) ) {
+      targetdt = Real_t(2.0) * domain.getDeltaTime() / Real_t(3.0) ;
    }
 
-   if (targetdt < domain.deltatime()) {
-      domain.deltatime() = targetdt ;
+   if (targetdt < domain.getDeltaTime()) {
+      domain.getDeltaTime() = targetdt ;
    }
 
-   domain.time() += domain.deltatime() ;
+   domain.getCurrentTime() += domain.getDeltaTime() ;
 
-   ++domain.cycle() ;
+   ++domain.getIterationCount() ;
 }
 
 /******************************************/
@@ -239,32 +239,32 @@ void CollectDomainNodesToElemNodes(Domain &domain,
    Index_t nd6i = elemToNode[6] ;
    Index_t nd7i = elemToNode[7] ;
 
-   elemX[0] = domain.x(nd0i);
-   elemX[1] = domain.x(nd1i);
-   elemX[2] = domain.x(nd2i);
-   elemX[3] = domain.x(nd3i);
-   elemX[4] = domain.x(nd4i);
-   elemX[5] = domain.x(nd5i);
-   elemX[6] = domain.x(nd6i);
-   elemX[7] = domain.x(nd7i);
+   elemX[0] = domain.getCoordinateX(nd0i);
+   elemX[1] = domain.getCoordinateX(nd1i);
+   elemX[2] = domain.getCoordinateX(nd2i);
+   elemX[3] = domain.getCoordinateX(nd3i);
+   elemX[4] = domain.getCoordinateX(nd4i);
+   elemX[5] = domain.getCoordinateX(nd5i);
+   elemX[6] = domain.getCoordinateX(nd6i);
+   elemX[7] = domain.getCoordinateX(nd7i);
 
-   elemY[0] = domain.y(nd0i);
-   elemY[1] = domain.y(nd1i);
-   elemY[2] = domain.y(nd2i);
-   elemY[3] = domain.y(nd3i);
-   elemY[4] = domain.y(nd4i);
-   elemY[5] = domain.y(nd5i);
-   elemY[6] = domain.y(nd6i);
-   elemY[7] = domain.y(nd7i);
+   elemY[0] = domain.getCoordinateY(nd0i);
+   elemY[1] = domain.getCoordinateY(nd1i);
+   elemY[2] = domain.getCoordinateY(nd2i);
+   elemY[3] = domain.getCoordinateY(nd3i);
+   elemY[4] = domain.getCoordinateY(nd4i);
+   elemY[5] = domain.getCoordinateY(nd5i);
+   elemY[6] = domain.getCoordinateY(nd6i);
+   elemY[7] = domain.getCoordinateY(nd7i);
 
-   elemZ[0] = domain.z(nd0i);
-   elemZ[1] = domain.z(nd1i);
-   elemZ[2] = domain.z(nd2i);
-   elemZ[3] = domain.z(nd3i);
-   elemZ[4] = domain.z(nd4i);
-   elemZ[5] = domain.z(nd5i);
-   elemZ[6] = domain.z(nd6i);
-   elemZ[7] = domain.z(nd7i);
+   elemZ[0] = domain.getCoordinateZ(nd0i);
+   elemZ[1] = domain.getCoordinateZ(nd1i);
+   elemZ[2] = domain.getCoordinateZ(nd2i);
+   elemZ[3] = domain.getCoordinateZ(nd3i);
+   elemZ[4] = domain.getCoordinateZ(nd4i);
+   elemZ[5] = domain.getCoordinateZ(nd5i);
+   elemZ[6] = domain.getCoordinateZ(nd6i);
+   elemZ[7] = domain.getCoordinateZ(nd7i);
 
 }
 
@@ -281,7 +281,7 @@ void InitStressTermsForElems(Domain &domain,
 
 #pragma omp parallel for firstprivate(numElem)
    for (Index_t i = 0 ; i < numElem ; ++i){
-      sigxx[i] = sigyy[i] = sigzz[i] =  - domain.p(i) - domain.q(i) ;
+      sigxx[i] = sigyy[i] = sigzz[i] =  - domain.getPressure(i) - domain.getArtificialViscosity(i) ;
    }
 }
 
@@ -552,9 +552,9 @@ void IntegrateStressForElems( Domain &domain,
        // copy nodal force contributions to global force arrray.
        for( Index_t lnode=0 ; lnode<8 ; ++lnode ) {
           Index_t gnode = elemToNode[lnode];
-          domain.fx(gnode) += fx_local[lnode];
-          domain.fy(gnode) += fy_local[lnode];
-          domain.fz(gnode) += fz_local[lnode];
+          domain.getForceX(gnode) += fx_local[lnode];
+          domain.getForceY(gnode) += fy_local[lnode];
+          domain.getForceZ(gnode) += fz_local[lnode];
        }
     }
   }
@@ -576,9 +576,9 @@ void IntegrateStressForElems( Domain &domain,
            fy_tmp += fy_elem[ielem] ;
            fz_tmp += fz_elem[ielem] ;
         }
-        domain.fx(gnode) = fx_tmp ;
-        domain.fy(gnode) = fy_tmp ;
-        domain.fz(gnode) = fz_tmp ;
+        domain.getForceX(gnode) = fx_tmp ;
+        domain.getForceY(gnode) = fy_tmp ;
+        domain.getForceZ(gnode) = fz_tmp ;
      }
      Release(&fz_elem) ;
      Release(&fy_elem) ;
@@ -850,7 +850,7 @@ void CalcFBHourglassForceForElems( Domain &domain,
       /* compute forces */
       /* store forces into h arrays (force arrays) */
 
-      ss1=domain.ss(i2);
+      ss1=domain.getSoundSpeed(i2);
       mass1=domain.elemMass(i2);
       volume13=CBRT(determ[i2]);
 
@@ -863,32 +863,32 @@ void CalcFBHourglassForceForElems( Domain &domain,
       Index_t n6si2 = elemToNode[6];
       Index_t n7si2 = elemToNode[7];
 
-      xd1[0] = domain.xd(n0si2);
-      xd1[1] = domain.xd(n1si2);
-      xd1[2] = domain.xd(n2si2);
-      xd1[3] = domain.xd(n3si2);
-      xd1[4] = domain.xd(n4si2);
-      xd1[5] = domain.xd(n5si2);
-      xd1[6] = domain.xd(n6si2);
-      xd1[7] = domain.xd(n7si2);
+      xd1[0] = domain.getVelocityX(n0si2);
+      xd1[1] = domain.getVelocityX(n1si2);
+      xd1[2] = domain.getVelocityX(n2si2);
+      xd1[3] = domain.getVelocityX(n3si2);
+      xd1[4] = domain.getVelocityX(n4si2);
+      xd1[5] = domain.getVelocityX(n5si2);
+      xd1[6] = domain.getVelocityX(n6si2);
+      xd1[7] = domain.getVelocityX(n7si2);
 
-      yd1[0] = domain.yd(n0si2);
-      yd1[1] = domain.yd(n1si2);
-      yd1[2] = domain.yd(n2si2);
-      yd1[3] = domain.yd(n3si2);
-      yd1[4] = domain.yd(n4si2);
-      yd1[5] = domain.yd(n5si2);
-      yd1[6] = domain.yd(n6si2);
-      yd1[7] = domain.yd(n7si2);
+      yd1[0] = domain.getVelocityY(n0si2);
+      yd1[1] = domain.getVelocityY(n1si2);
+      yd1[2] = domain.getVelocityY(n2si2);
+      yd1[3] = domain.getVelocityY(n3si2);
+      yd1[4] = domain.getVelocityY(n4si2);
+      yd1[5] = domain.getVelocityY(n5si2);
+      yd1[6] = domain.getVelocityY(n6si2);
+      yd1[7] = domain.getVelocityY(n7si2);
 
-      zd1[0] = domain.zd(n0si2);
-      zd1[1] = domain.zd(n1si2);
-      zd1[2] = domain.zd(n2si2);
-      zd1[3] = domain.zd(n3si2);
-      zd1[4] = domain.zd(n4si2);
-      zd1[5] = domain.zd(n5si2);
-      zd1[6] = domain.zd(n6si2);
-      zd1[7] = domain.zd(n7si2);
+      zd1[0] = domain.getVelocityZ(n0si2);
+      zd1[1] = domain.getVelocityZ(n1si2);
+      zd1[2] = domain.getVelocityZ(n2si2);
+      zd1[3] = domain.getVelocityZ(n3si2);
+      zd1[4] = domain.getVelocityZ(n4si2);
+      zd1[5] = domain.getVelocityZ(n5si2);
+      zd1[6] = domain.getVelocityZ(n6si2);
+      zd1[7] = domain.getVelocityZ(n7si2);
 
       coefficient = - hourg * Real_t(0.01) * ss1 * mass1 / volume13;
 
@@ -930,37 +930,37 @@ void CalcFBHourglassForceForElems( Domain &domain,
          fz_local[7] = hgfz[7];
       }
       else {
-         domain.fx(n0si2) += hgfx[0];
-         domain.fy(n0si2) += hgfy[0];
-         domain.fz(n0si2) += hgfz[0];
+         domain.getForceX(n0si2) += hgfx[0];
+         domain.getForceY(n0si2) += hgfy[0];
+         domain.getForceZ(n0si2) += hgfz[0];
 
-         domain.fx(n1si2) += hgfx[1];
-         domain.fy(n1si2) += hgfy[1];
-         domain.fz(n1si2) += hgfz[1];
+         domain.getForceX(n1si2) += hgfx[1];
+         domain.getForceY(n1si2) += hgfy[1];
+         domain.getForceZ(n1si2) += hgfz[1];
 
-         domain.fx(n2si2) += hgfx[2];
-         domain.fy(n2si2) += hgfy[2];
-         domain.fz(n2si2) += hgfz[2];
+         domain.getForceX(n2si2) += hgfx[2];
+         domain.getForceY(n2si2) += hgfy[2];
+         domain.getForceZ(n2si2) += hgfz[2];
 
-         domain.fx(n3si2) += hgfx[3];
-         domain.fy(n3si2) += hgfy[3];
-         domain.fz(n3si2) += hgfz[3];
+         domain.getForceX(n3si2) += hgfx[3];
+         domain.getForceY(n3si2) += hgfy[3];
+         domain.getForceZ(n3si2) += hgfz[3];
 
-         domain.fx(n4si2) += hgfx[4];
-         domain.fy(n4si2) += hgfy[4];
-         domain.fz(n4si2) += hgfz[4];
+         domain.getForceX(n4si2) += hgfx[4];
+         domain.getForceY(n4si2) += hgfy[4];
+         domain.getForceZ(n4si2) += hgfz[4];
 
-         domain.fx(n5si2) += hgfx[5];
-         domain.fy(n5si2) += hgfy[5];
-         domain.fz(n5si2) += hgfz[5];
+         domain.getForceX(n5si2) += hgfx[5];
+         domain.getForceY(n5si2) += hgfy[5];
+         domain.getForceZ(n5si2) += hgfz[5];
 
-         domain.fx(n6si2) += hgfx[6];
-         domain.fy(n6si2) += hgfy[6];
-         domain.fz(n6si2) += hgfz[6];
+         domain.getForceX(n6si2) += hgfx[6];
+         domain.getForceY(n6si2) += hgfy[6];
+         domain.getForceZ(n6si2) += hgfz[6];
 
-         domain.fx(n7si2) += hgfx[7];
-         domain.fy(n7si2) += hgfy[7];
-         domain.fz(n7si2) += hgfz[7];
+         domain.getForceX(n7si2) += hgfx[7];
+         domain.getForceY(n7si2) += hgfy[7];
+         domain.getForceZ(n7si2) += hgfz[7];
       }
    }
 
@@ -980,9 +980,9 @@ void CalcFBHourglassForceForElems( Domain &domain,
             fy_tmp += fy_elem[ielem] ;
             fz_tmp += fz_elem[ielem] ;
          }
-         domain.fx(gnode) += fx_tmp ;
-         domain.fy(gnode) += fy_tmp ;
-         domain.fz(gnode) += fz_tmp ;
+         domain.getForceX(gnode) += fx_tmp ;
+         domain.getForceY(gnode) += fy_tmp ;
+         domain.getForceZ(gnode) += fz_tmp ;
       }
       Release(&fz_elem) ;
       Release(&fy_elem) ;
@@ -996,7 +996,7 @@ static inline
 void CalcHourglassControlForElems(Domain& domain,
                                   Real_t determ[], Real_t hgcoef)
 {
-   Index_t numElem = domain.numElem() ;
+   Index_t numElem = domain.getNumberOfElements() ;
    Index_t numElem8 = numElem * 8 ;
    Real_t *dvdx = Allocate<Real_t>(numElem8) ;
    Real_t *dvdy = Allocate<Real_t>(numElem8) ;
@@ -1028,7 +1028,7 @@ void CalcHourglassControlForElems(Domain& domain,
          z8n[jj]  = z1[ii];
       }
 
-      determ[i] = domain.volo(i) * domain.v(i);
+      determ[i] = domain.getReferenceVolume(i) * domain.v(i);
 
       /* Do a check for negative volumes */
       if ( domain.v(i) <= Real_t(0.0) ) {
@@ -1043,7 +1043,7 @@ void CalcHourglassControlForElems(Domain& domain,
    if ( hgcoef > Real_t(0.) ) {
       CalcFBHourglassForceForElems( domain,
                                     determ, x8n, y8n, z8n, dvdx, dvdy, dvdz,
-                                    hgcoef, numElem, domain.numNode()) ;
+                                    hgcoef, numElem, domain.getNumberOfNodes()) ;
    }
 
    Release(&z8n) ;
@@ -1061,9 +1061,9 @@ void CalcHourglassControlForElems(Domain& domain,
 static inline
 void CalcVolumeForceForElems(Domain& domain)
 {
-   Index_t numElem = domain.numElem() ;
+   Index_t numElem = domain.getNumberOfElements() ;
    if (numElem != 0) {
-      Real_t  hgcoef = domain.hgcoef() ;
+      Real_t  hgcoef = domain.getHourglassControlCoefficient() ;
       Real_t *sigxx  = Allocate<Real_t>(numElem) ;
       Real_t *sigyy  = Allocate<Real_t>(numElem) ;
       Real_t *sigzz  = Allocate<Real_t>(numElem) ;
@@ -1076,7 +1076,7 @@ void CalcVolumeForceForElems(Domain& domain)
       // material stresses.
       IntegrateStressForElems( domain,
                                sigxx, sigyy, sigzz, determ, numElem,
-                               domain.numNode()) ;
+                               domain.getNumberOfNodes()) ;
 
       // check for negative element volume
 #pragma omp parallel for firstprivate(numElem)
@@ -1103,7 +1103,7 @@ void CalcVolumeForceForElems(Domain& domain)
 
 static inline void CalcForceForNodes(Domain& domain)
 {
-  Index_t numNode = domain.numNode() ;
+  Index_t numNode = domain.getNumberOfNodes() ;
 
 #if USE_MPI  
   CommRecv(domain, MSG_COMM_SBN, 3,
@@ -1113,9 +1113,9 @@ static inline void CalcForceForNodes(Domain& domain)
 
 #pragma omp parallel for firstprivate(numNode)
   for (Index_t i=0; i<numNode; ++i) {
-     domain.fx(i) = Real_t(0.0) ;
-     domain.fy(i) = Real_t(0.0) ;
-     domain.fz(i) = Real_t(0.0) ;
+     domain.getForceX(i) = Real_t(0.0) ;
+     domain.getForceY(i) = Real_t(0.0) ;
+     domain.getForceZ(i) = Real_t(0.0) ;
   }
 
   /* Calcforce calls partial, force, hourq */
@@ -1123,9 +1123,9 @@ static inline void CalcForceForNodes(Domain& domain)
 
 #if USE_MPI  
   Domain_member fieldData[3] ;
-  fieldData[0] = &Domain::fx ;
-  fieldData[1] = &Domain::fy ;
-  fieldData[2] = &Domain::fz ;
+  fieldData[0] = &Domain::getForceX ;
+  fieldData[1] = &Domain::getForceY ;
+  fieldData[2] = &Domain::getForceZ ;
   
   CommSend(domain, MSG_COMM_SBN, 3, fieldData,
            domain.sizeX() + 1, domain.sizeY() + 1, domain.sizeZ() +  1,
@@ -1142,9 +1142,9 @@ void CalcAccelerationForNodes(Domain &domain, Index_t numNode)
    
 #pragma omp parallel for firstprivate(numNode)
    for (Index_t i = 0; i < numNode; ++i) {
-      domain.xdd(i) = domain.fx(i) / domain.nodalMass(i);
-      domain.ydd(i) = domain.fy(i) / domain.nodalMass(i);
-      domain.zdd(i) = domain.fz(i) / domain.nodalMass(i);
+      domain.getAccelerationX(i) = domain.getForceX(i) / domain.getNodalMass(i);
+      domain.getAccelerationY(i) = domain.getForceY(i) / domain.getNodalMass(i);
+      domain.getAccelerationZ(i) = domain.getForceZ(i) / domain.getNodalMass(i);
    }
 }
 
@@ -1158,22 +1158,22 @@ void ApplyAccelerationBoundaryConditionsForNodes(Domain& domain)
 
 #pragma omp parallel
    {
-      if (!domain.symmXempty() != 0) {
+      if (!domain.isSymmXEmpty() != 0) {
 #pragma omp for nowait firstprivate(numNodeBC)
          for(Index_t i=0 ; i<numNodeBC ; ++i)
-            domain.xdd(domain.symmX(i)) = Real_t(0.0) ;
+            domain.getAccelerationX(domain.symmX(i)) = Real_t(0.0) ;
       }
 
-      if (!domain.symmYempty() != 0) {
+      if (!domain.isSymmYEmpty() != 0) {
 #pragma omp for nowait firstprivate(numNodeBC)
          for(Index_t i=0 ; i<numNodeBC ; ++i)
-            domain.ydd(domain.symmY(i)) = Real_t(0.0) ;
+            domain.getAccelerationY(domain.symmY(i)) = Real_t(0.0) ;
       }
 
-      if (!domain.symmZempty() != 0) {
+      if (!domain.isSymmZEmpty() != 0) {
 #pragma omp for nowait firstprivate(numNodeBC)
          for(Index_t i=0 ; i<numNodeBC ; ++i)
-            domain.zdd(domain.symmZ(i)) = Real_t(0.0) ;
+            domain.getAccelerationZ(domain.symmZ(i)) = Real_t(0.0) ;
       }
    }
 }
@@ -1190,17 +1190,17 @@ void CalcVelocityForNodes(Domain &domain, const Real_t dt, const Real_t u_cut,
    {
      Real_t xdtmp, ydtmp, zdtmp ;
 
-     xdtmp = domain.xd(i) + domain.xdd(i) * dt ;
+     xdtmp = domain.getVelocityX(i) + domain.getAccelerationX(i) * dt ;
      if( FABS(xdtmp) < u_cut ) xdtmp = Real_t(0.0);
-     domain.xd(i) = xdtmp ;
+     domain.getVelocityX(i) = xdtmp ;
 
-     ydtmp = domain.yd(i) + domain.ydd(i) * dt ;
+     ydtmp = domain.getVelocityY(i) + domain.getAccelerationY(i) * dt ;
      if( FABS(ydtmp) < u_cut ) ydtmp = Real_t(0.0);
-     domain.yd(i) = ydtmp ;
+     domain.getVelocityY(i) = ydtmp ;
 
-     zdtmp = domain.zd(i) + domain.zdd(i) * dt ;
+     zdtmp = domain.getVelocityZ(i) + domain.getAccelerationZ(i) * dt ;
      if( FABS(zdtmp) < u_cut ) zdtmp = Real_t(0.0);
-     domain.zd(i) = zdtmp ;
+     domain.getVelocityZ(i) = zdtmp ;
    }
 }
 
@@ -1212,9 +1212,9 @@ void CalcPositionForNodes(Domain &domain, const Real_t dt, Index_t numNode)
 #pragma omp parallel for firstprivate(numNode)
    for ( Index_t i = 0 ; i < numNode ; ++i )
    {
-     domain.x(i) += domain.xd(i) * dt ;
-     domain.y(i) += domain.yd(i) * dt ;
-     domain.z(i) += domain.zd(i) * dt ;
+     domain.getCoordinateX(i) += domain.getVelocityX(i) * dt ;
+     domain.getCoordinateY(i) += domain.getVelocityY(i) * dt ;
+     domain.getCoordinateZ(i) += domain.getVelocityZ(i) * dt ;
    }
 }
 
@@ -1227,8 +1227,8 @@ void LagrangeNodal(Domain& domain)
    Domain_member fieldData[6] ;
 #endif
 
-   const Real_t delt = domain.deltatime() ;
-   Real_t u_cut = domain.u_cut() ;
+   const Real_t delt = domain.getDeltaTime() ;
+   Real_t u_cut = domain.getVelocityToleranceCutoff() ;
 
   /* time of boundary condition evaluation is beginning of step for force and
    * acceleration boundary conditions. */
@@ -1242,21 +1242,21 @@ void LagrangeNodal(Domain& domain)
 #endif
 #endif
    
-   CalcAccelerationForNodes(domain, domain.numNode());
+   CalcAccelerationForNodes(domain, domain.getNumberOfNodes());
    
    ApplyAccelerationBoundaryConditionsForNodes(domain);
 
-   CalcVelocityForNodes( domain, delt, u_cut, domain.numNode()) ;
+   CalcVelocityForNodes( domain, delt, u_cut, domain.getNumberOfNodes()) ;
 
-   CalcPositionForNodes( domain, delt, domain.numNode() );
+   CalcPositionForNodes( domain, delt, domain.getNumberOfNodes() );
 #if USE_MPI
 #ifdef SEDOV_SYNC_POS_VEL_EARLY
-  fieldData[0] = &Domain::x ;
-  fieldData[1] = &Domain::y ;
-  fieldData[2] = &Domain::z ;
-  fieldData[3] = &Domain::xd ;
-  fieldData[4] = &Domain::yd ;
-  fieldData[5] = &Domain::zd ;
+  fieldData[0] = &Domain::getCoordinateX ;
+  fieldData[1] = &Domain::getCoordinateY ;
+  fieldData[2] = &Domain::getCoordinateZ ;
+  fieldData[3] = &Domain::getVelocityX ;
+  fieldData[4] = &Domain::getVelocityY ;
+  fieldData[5] = &Domain::getVelocityZ ;
 
    CommSend(domain, MSG_SYNC_POS_VEL, 6, fieldData,
             domain.sizeX() + 1, domain.sizeY() + 1, domain.sizeZ() + 1,
@@ -1529,21 +1529,21 @@ void CalcKinematicsForElems( Domain &domain,
 
     // volume calculations
     volume = CalcElemVolume(x_local, y_local, z_local );
-    relativeVolume = volume / domain.volo(k) ;
+    relativeVolume = volume / domain.getReferenceVolume(k) ;
     domain.vnew(k) = relativeVolume ;
     domain.delv(k) = relativeVolume - domain.v(k) ;
 
     // set characteristic length
-    domain.arealg(k) = CalcElemCharacteristicLength(x_local, y_local, z_local,
+    domain.getElementCharacteristicLength(k) = CalcElemCharacteristicLength(x_local, y_local, z_local,
                                              volume);
 
     // get nodal velocities from global array and copy into local arrays.
     for( Index_t lnode=0 ; lnode<8 ; ++lnode )
     {
       Index_t gnode = elemToNode[lnode];
-      xd_local[lnode] = domain.xd(gnode);
-      yd_local[lnode] = domain.yd(gnode);
-      zd_local[lnode] = domain.zd(gnode);
+      xd_local[lnode] = domain.getVelocityX(gnode);
+      yd_local[lnode] = domain.getVelocityY(gnode);
+      zd_local[lnode] = domain.getVelocityZ(gnode);
     }
 
     Real_t dt2 = Real_t(0.5) * deltaTime;
@@ -1572,9 +1572,9 @@ void CalcKinematicsForElems( Domain &domain,
 static inline
 void CalcLagrangeElements(Domain& domain)
 {
-   Index_t numElem = domain.numElem() ;
+   Index_t numElem = domain.getNumberOfElements() ;
    if (numElem > 0) {
-      const Real_t deltatime = domain.deltatime() ;
+      const Real_t deltatime = domain.getDeltaTime() ;
 
       domain.AllocateStrains(numElem);
 
@@ -1613,7 +1613,7 @@ void CalcLagrangeElements(Domain& domain)
 static inline
 void CalcMonotonicQGradientsForElems(Domain& domain)
 {
-   Index_t numElem = domain.numElem();
+   Index_t numElem = domain.getNumberOfElements();
 
 #pragma omp parallel for firstprivate(numElem)
    for (Index_t i = 0 ; i < numElem ; ++i ) {
@@ -1631,61 +1631,61 @@ void CalcMonotonicQGradientsForElems(Domain& domain)
       Index_t n6 = elemToNode[6] ;
       Index_t n7 = elemToNode[7] ;
 
-      Real_t x0 = domain.x(n0) ;
-      Real_t x1 = domain.x(n1) ;
-      Real_t x2 = domain.x(n2) ;
-      Real_t x3 = domain.x(n3) ;
-      Real_t x4 = domain.x(n4) ;
-      Real_t x5 = domain.x(n5) ;
-      Real_t x6 = domain.x(n6) ;
-      Real_t x7 = domain.x(n7) ;
+      Real_t x0 = domain.getCoordinateX(n0) ;
+      Real_t x1 = domain.getCoordinateX(n1) ;
+      Real_t x2 = domain.getCoordinateX(n2) ;
+      Real_t x3 = domain.getCoordinateX(n3) ;
+      Real_t x4 = domain.getCoordinateX(n4) ;
+      Real_t x5 = domain.getCoordinateX(n5) ;
+      Real_t x6 = domain.getCoordinateX(n6) ;
+      Real_t x7 = domain.getCoordinateX(n7) ;
 
-      Real_t y0 = domain.y(n0) ;
-      Real_t y1 = domain.y(n1) ;
-      Real_t y2 = domain.y(n2) ;
-      Real_t y3 = domain.y(n3) ;
-      Real_t y4 = domain.y(n4) ;
-      Real_t y5 = domain.y(n5) ;
-      Real_t y6 = domain.y(n6) ;
-      Real_t y7 = domain.y(n7) ;
+      Real_t y0 = domain.getCoordinateY(n0) ;
+      Real_t y1 = domain.getCoordinateY(n1) ;
+      Real_t y2 = domain.getCoordinateY(n2) ;
+      Real_t y3 = domain.getCoordinateY(n3) ;
+      Real_t y4 = domain.getCoordinateY(n4) ;
+      Real_t y5 = domain.getCoordinateY(n5) ;
+      Real_t y6 = domain.getCoordinateY(n6) ;
+      Real_t y7 = domain.getCoordinateY(n7) ;
 
-      Real_t z0 = domain.z(n0) ;
-      Real_t z1 = domain.z(n1) ;
-      Real_t z2 = domain.z(n2) ;
-      Real_t z3 = domain.z(n3) ;
-      Real_t z4 = domain.z(n4) ;
-      Real_t z5 = domain.z(n5) ;
-      Real_t z6 = domain.z(n6) ;
-      Real_t z7 = domain.z(n7) ;
+      Real_t z0 = domain.getCoordinateZ(n0) ;
+      Real_t z1 = domain.getCoordinateZ(n1) ;
+      Real_t z2 = domain.getCoordinateZ(n2) ;
+      Real_t z3 = domain.getCoordinateZ(n3) ;
+      Real_t z4 = domain.getCoordinateZ(n4) ;
+      Real_t z5 = domain.getCoordinateZ(n5) ;
+      Real_t z6 = domain.getCoordinateZ(n6) ;
+      Real_t z7 = domain.getCoordinateZ(n7) ;
 
-      Real_t xv0 = domain.xd(n0) ;
-      Real_t xv1 = domain.xd(n1) ;
-      Real_t xv2 = domain.xd(n2) ;
-      Real_t xv3 = domain.xd(n3) ;
-      Real_t xv4 = domain.xd(n4) ;
-      Real_t xv5 = domain.xd(n5) ;
-      Real_t xv6 = domain.xd(n6) ;
-      Real_t xv7 = domain.xd(n7) ;
+      Real_t xv0 = domain.getVelocityX(n0) ;
+      Real_t xv1 = domain.getVelocityX(n1) ;
+      Real_t xv2 = domain.getVelocityX(n2) ;
+      Real_t xv3 = domain.getVelocityX(n3) ;
+      Real_t xv4 = domain.getVelocityX(n4) ;
+      Real_t xv5 = domain.getVelocityX(n5) ;
+      Real_t xv6 = domain.getVelocityX(n6) ;
+      Real_t xv7 = domain.getVelocityX(n7) ;
 
-      Real_t yv0 = domain.yd(n0) ;
-      Real_t yv1 = domain.yd(n1) ;
-      Real_t yv2 = domain.yd(n2) ;
-      Real_t yv3 = domain.yd(n3) ;
-      Real_t yv4 = domain.yd(n4) ;
-      Real_t yv5 = domain.yd(n5) ;
-      Real_t yv6 = domain.yd(n6) ;
-      Real_t yv7 = domain.yd(n7) ;
+      Real_t yv0 = domain.getVelocityY(n0) ;
+      Real_t yv1 = domain.getVelocityY(n1) ;
+      Real_t yv2 = domain.getVelocityY(n2) ;
+      Real_t yv3 = domain.getVelocityY(n3) ;
+      Real_t yv4 = domain.getVelocityY(n4) ;
+      Real_t yv5 = domain.getVelocityY(n5) ;
+      Real_t yv6 = domain.getVelocityY(n6) ;
+      Real_t yv7 = domain.getVelocityY(n7) ;
 
-      Real_t zv0 = domain.zd(n0) ;
-      Real_t zv1 = domain.zd(n1) ;
-      Real_t zv2 = domain.zd(n2) ;
-      Real_t zv3 = domain.zd(n3) ;
-      Real_t zv4 = domain.zd(n4) ;
-      Real_t zv5 = domain.zd(n5) ;
-      Real_t zv6 = domain.zd(n6) ;
-      Real_t zv7 = domain.zd(n7) ;
+      Real_t zv0 = domain.getVelocityZ(n0) ;
+      Real_t zv1 = domain.getVelocityZ(n1) ;
+      Real_t zv2 = domain.getVelocityZ(n2) ;
+      Real_t zv3 = domain.getVelocityZ(n3) ;
+      Real_t zv4 = domain.getVelocityZ(n4) ;
+      Real_t zv5 = domain.getVelocityZ(n5) ;
+      Real_t zv6 = domain.getVelocityZ(n6) ;
+      Real_t zv7 = domain.getVelocityZ(n7) ;
 
-      Real_t vol = domain.volo(i)*domain.vnew(i) ;
+      Real_t vol = domain.getReferenceVolume(i)*domain.vnew(i) ;
       Real_t norm = Real_t(1.0) / ( vol + ptiny ) ;
 
       Real_t dxj = Real_t(-0.25)*((x0+x1+x5+x4) - (x3+x2+x6+x7)) ;
@@ -1764,8 +1764,8 @@ void CalcMonotonicQRegionForElems(Domain &domain, Int_t r,
 {
    Real_t monoq_limiter_mult = domain.monoq_limiter_mult();
    Real_t monoq_max_slope = domain.monoq_max_slope();
-   Real_t qlc_monoq = domain.qlc_monoq();
-   Real_t qqc_monoq = domain.qqc_monoq();
+   Real_t qlc_monoq = domain.getLinearQCoefficient();
+   Real_t qqc_monoq = domain.getQuadraticQCoefficient();
 
 #pragma omp parallel for firstprivate(qlc_monoq, qqc_monoq, monoq_limiter_mult, monoq_max_slope, ptiny)
    for ( Index_t i = 0 ; i < domain.regElemSize(r); ++i ) {
@@ -1902,7 +1902,7 @@ void CalcMonotonicQRegionForElems(Domain &domain, Int_t r,
          if ( delvxeta  > Real_t(0.) ) delvxeta  = Real_t(0.) ;
          if ( delvxzeta > Real_t(0.) ) delvxzeta = Real_t(0.) ;
 
-         Real_t rho = domain.elemMass(ielem) / (domain.volo(ielem) * domain.vnew(ielem)) ;
+         Real_t rho = domain.elemMass(ielem) / (domain.getReferenceVolume(ielem) * domain.vnew(ielem)) ;
 
          qlin = -qlc_monoq * rho *
             (  delvxxi   * (Real_t(1.) - phixi) +
@@ -1915,8 +1915,8 @@ void CalcMonotonicQRegionForElems(Domain &domain, Int_t r,
                delvxzeta*delvxzeta * (Real_t(1.) - phizeta*phizeta)  ) ;
       }
 
-      domain.qq(ielem) = qquad ;
-      domain.ql(ielem) = qlin  ;
+      domain.getQuadraticTermForQ(ielem) = qquad ;
+      domain.getLinearTermForQ(ielem) = qlin  ;
    }
 }
 
@@ -1933,7 +1933,7 @@ void CalcMonotonicQForElems(Domain& domain)
    //
    // calculate the monotonic q for all regions
    //
-   for (Index_t r=0 ; r<domain.numReg() ; ++r) {
+   for (Index_t r=0 ; r<domain.getNumberOfRegions() ; ++r) {
       if (domain.regElemSize(r) > 0) {
          CalcMonotonicQRegionForElems(domain, r, ptiny) ;
       }
@@ -1949,7 +1949,7 @@ void CalcQForElems(Domain& domain)
    // MONOTONIC Q option
    //
 
-   Index_t numElem = domain.numElem() ;
+   Index_t numElem = domain.getNumberOfElements() ;
 
    if (numElem != 0) {
       Int_t allElem = numElem +  /* local elem */
@@ -1993,7 +1993,7 @@ void CalcQForElems(Domain& domain)
       /* Don't allow excessive artificial viscosity */
       Index_t idx = -1; 
       for (Index_t i=0; i<numElem; ++i) {
-         if ( domain.q(i) > domain.qstop() ) {
+         if ( domain.getArtificialViscosity(i) > domain.getExcessiveQIndicator() ) {
             idx = i ;
             break ;
          }
@@ -2195,7 +2195,7 @@ void CalcSoundSpeedForElems(Domain &domain,
       else {
          ssTmp = SQRT(ssTmp);
       }
-      domain.ss(ielem) = ssTmp ;
+      domain.getSoundSpeed(ielem) = ssTmp ;
    }
 }
 
@@ -2205,16 +2205,16 @@ static inline
 void EvalEOSForElems(Domain& domain, Real_t *vnewc,
                      Int_t numElemReg, Index_t *regElemList, Int_t rep)
 {
-   Real_t  e_cut = domain.e_cut() ;
-   Real_t  p_cut = domain.p_cut() ;
+   Real_t  e_cut = domain.getEnergyToleranceCutoff() ;
+   Real_t  p_cut = domain.getPressureToleranceCutoff() ;
    Real_t  ss4o3 = domain.ss4o3() ;
-   Real_t  q_cut = domain.q_cut() ;
+   Real_t  q_cut = domain.getQToleranceCutoff() ;
 
    Real_t eosvmax = domain.eosvmax() ;
    Real_t eosvmin = domain.eosvmin() ;
-   Real_t pmin    = domain.pmin() ;
-   Real_t emin    = domain.emin() ;
-   Real_t rho0    = domain.refdens() ;
+   Real_t pmin    = domain.getPressureFloor() ;
+   Real_t emin    = domain.getEnergyFloor() ;
+   Real_t rho0    = domain.getReferenceDensity() ;
 
    // These temporaries will be of different size for 
    // each call (due to different sized region element
@@ -2244,10 +2244,10 @@ void EvalEOSForElems(Domain& domain, Real_t *vnewc,
             Index_t ielem = regElemList[i];
             e_old[i] = domain.e(ielem) ;
             delvc[i] = domain.delv(ielem) ;
-            p_old[i] = domain.p(ielem) ;
-            q_old[i] = domain.q(ielem) ;
-            qq_old[i] = domain.qq(ielem) ;
-            ql_old[i] = domain.ql(ielem) ;
+            p_old[i] = domain.getPressure(ielem) ;
+            q_old[i] = domain.getArtificialViscosity(ielem) ;
+            qq_old[i] = domain.getQuadraticTermForQ(ielem) ;
+            ql_old[i] = domain.getLinearTermForQ(ielem) ;
          }
 
 #pragma omp for firstprivate(numElemReg)
@@ -2297,9 +2297,9 @@ void EvalEOSForElems(Domain& domain, Real_t *vnewc,
 #pragma omp parallel for firstprivate(numElemReg)
    for (Index_t i=0; i<numElemReg; ++i) {
       Index_t ielem = regElemList[i];
-      domain.p(ielem) = p_new[i] ;
+      domain.getPressure(ielem) = p_new[i] ;
       domain.e(ielem) = e_new[i] ;
-      domain.q(ielem) = q_new[i] ;
+      domain.getArtificialViscosity(ielem) = q_new[i] ;
    }
 
    CalcSoundSpeedForElems(domain,
@@ -2328,7 +2328,7 @@ void EvalEOSForElems(Domain& domain, Real_t *vnewc,
 static inline
 void ApplyMaterialPropertiesForElems(Domain& domain)
 {
-   Index_t numElem = domain.numElem() ;
+   Index_t numElem = domain.getNumberOfElements() ;
 
   if (numElem != 0) {
     /* Expose all of the variables needed for material evaluation */
@@ -2384,20 +2384,20 @@ void ApplyMaterialPropertiesForElems(Domain& domain)
        }
     }
 
-    for (Int_t r=0 ; r<domain.numReg() ; r++) {
+    for (Int_t r=0 ; r<domain.getNumberOfRegions() ; r++) {
        Index_t numElemReg = domain.regElemSize(r);
        Index_t *regElemList = domain.regElemlist(r);
        Int_t rep;
        //Determine load imbalance for this region
        //round down the number with lowest cost
-       if(r < domain.numReg()/2)
+       if(r < domain.getNumberOfRegions()/2)
 	 rep = 1;
        //you don't get an expensive region unless you at least have 5 regions
-       else if(r < (domain.numReg() - (domain.numReg()+15)/20))
-         rep = 1 + domain.cost();
+       else if(r < (domain.getNumberOfRegions() - (domain.getNumberOfRegions()+15)/20))
+         rep = 1 + domain.getImbalanceCost();
        //very expensive regions
        else
-	 rep = 10 * (1+ domain.cost());
+	 rep = 10 * (1+ domain.getImbalanceCost());
        EvalEOSForElems(domain, vnewc, numElemReg, regElemList, rep);
     }
 
@@ -2439,7 +2439,7 @@ void LagrangeElements(Domain& domain, Index_t numElem)
   ApplyMaterialPropertiesForElems(domain) ;
 
   UpdateVolumesForElems(domain, 
-                        domain.v_cut(), numElem) ;
+                        domain.getRelativeVolumeToleranceCutoff(), numElem) ;
 }
 
 /******************************************/
@@ -2474,16 +2474,16 @@ void CalcCourantConstraintForElems(Domain &domain, Index_t length,
 #pragma omp for 
       for (Index_t i = 0 ; i < length ; ++i) {
          Index_t indx = regElemlist[i] ;
-         Real_t dtf = domain.ss(indx) * domain.ss(indx) ;
+         Real_t dtf = domain.getSoundSpeed(indx) * domain.getSoundSpeed(indx) ;
 
          if ( domain.vdov(indx) < Real_t(0.) ) {
             dtf = dtf
-                + qqc2 * domain.arealg(indx) * domain.arealg(indx)
+                + qqc2 * domain.getElementCharacteristicLength(indx) * domain.getElementCharacteristicLength(indx)
                 * domain.vdov(indx) * domain.vdov(indx) ;
          }
 
          dtf = SQRT(dtf) ;
-         dtf = domain.arealg(indx) / dtf ;
+         dtf = domain.getElementCharacteristicLength(indx) / dtf ;
 
          if (domain.vdov(indx) != Real_t(0.)) {
             if ( dtf < dtcourant_tmp ) {
@@ -2577,21 +2577,21 @@ static inline
 void CalcTimeConstraintsForElems(Domain& domain) {
 
    // Initialize conditions to a very large value
-   domain.dtcourant() = 1.0e+20;
-   domain.dthydro() = 1.0e+20;
+   domain.getCourantConstraint() = 1.0e+20;
+   domain.getVolumeChangeConstraint() = 1.0e+20;
 
-   for (Index_t r=0 ; r < domain.numReg() ; ++r) {
+   for (Index_t r=0 ; r < domain.getNumberOfRegions() ; ++r) {
       /* evaluate time constraint */
       CalcCourantConstraintForElems(domain, domain.regElemSize(r),
                                     domain.regElemlist(r),
                                     domain.qqc(),
-                                    domain.dtcourant()) ;
+                                    domain.getCourantConstraint()) ;
 
       /* check hydro constraint */
       CalcHydroConstraintForElems(domain, domain.regElemSize(r),
                                   domain.regElemlist(r),
-                                  domain.dvovmax(),
-                                  domain.dthydro()) ;
+                                  domain.getMaxAllowedVolumeChange(),
+                                  domain.getVolumeChangeConstraint()) ;
    }
 }
 
@@ -2614,7 +2614,7 @@ void LagrangeLeapFrog(Domain& domain)
 
    /* calculate element quantities (i.e. velocity gradient & q), and update
     * material states */
-   LagrangeElements(domain, domain.numElem());
+   LagrangeElements(domain, domain.getNumberOfElements());
 
 #if USE_MPI   
 #ifdef SEDOV_SYNC_POS_VEL_LATE
@@ -2622,12 +2622,12 @@ void LagrangeLeapFrog(Domain& domain)
             domain.sizeX() + 1, domain.sizeY() + 1, domain.sizeZ() + 1,
             false, false) ;
 
-   fieldData[0] = &Domain::x ;
-   fieldData[1] = &Domain::y ;
-   fieldData[2] = &Domain::z ;
-   fieldData[3] = &Domain::xd ;
-   fieldData[4] = &Domain::yd ;
-   fieldData[5] = &Domain::zd ;
+   fieldData[0] = &Domain::getCoordinateX ;
+   fieldData[1] = &Domain::getCoordinateY ;
+   fieldData[2] = &Domain::getCoordinateZ ;
+   fieldData[3] = &Domain::getVelocityX ;
+   fieldData[4] = &Domain::getVelocityY ;
+   fieldData[5] = &Domain::getVelocityZ ;
    
    CommSend(domain, MSG_SYNC_POS_VEL, 6, fieldData,
             domain.sizeX() + 1, domain.sizeY() + 1, domain.sizeZ() + 1,
@@ -2717,7 +2717,7 @@ int main(int argc, char *argv[])
 
 
 #if USE_MPI   
-   fieldData = &Domain::nodalMass ;
+   fieldData = &Domain::getNodalMass ;
 
    // Initial domain boundary communication 
    CommRecv(*locDom, MSG_COMM_SBN, 1,
@@ -2742,16 +2742,16 @@ int main(int argc, char *argv[])
 //debug to see region sizes
 //   for(Int_t i = 0; i < locDom->numReg(); i++)
 //      std::cout << "region" << i + 1<< "size" << locDom->regElemSize(i) <<std::endl;
-   while((locDom->time() < locDom->stoptime()) && (locDom->cycle() < opts.its)) {
+   while((locDom->getCurrentTime() < locDom->getStopTime()) && (locDom->getIterationCount() < opts.its)) {
 
       TimeIncrement(*locDom) ;
       LagrangeLeapFrog(*locDom) ;
 
       if ((opts.showProg != 0) && (opts.quiet == 0) && (myRank == 0)) {
-         std::cout << "cycle = " << locDom->cycle()       << ", "
+         std::cout << "cycle = " << locDom->getIterationCount()       << ", "
                    << std::scientific
-                   << "time = " << double(locDom->time()) << ", "
-                   << "dt="     << double(locDom->deltatime()) << "\n";
+                   << "time = " << double(locDom->getCurrentTime()) << ", "
+                   << "dt="     << double(locDom->getDeltaTime()) << "\n";
          std::cout.unsetf(std::ios_base::floatfield);
       }
    }
