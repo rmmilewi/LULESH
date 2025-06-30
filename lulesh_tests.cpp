@@ -346,7 +346,308 @@ TEST_F(LuleshTest, CalcElemVolumeInvertedElement) {
 
 // ParseCommandLineOptions tests removed since we're not including the full implementation
 
-// Domain class tests removed since we're not including the full implementation
+// Domain class tests
+TEST_F(LuleshTest, DomainConstructorDestructor) {
+    Int_t numRanks = 1;
+    Index_t colLoc = 0;
+    Index_t rowLoc = 0;
+    Index_t planeLoc = 0;
+    Index_t nx = 10;
+    Int_t tp = 1;
+    Int_t nr = 11;
+    Int_t balance = 1;
+    Int_t cost = 1;
+    
+    Domain* domain = new Domain(numRanks, colLoc, rowLoc, planeLoc, nx, tp, nr, balance, cost);
+    ASSERT_NE(domain, nullptr);
+    
+    EXPECT_EQ(domain->numRanks(), numRanks);
+    EXPECT_EQ(domain->colLoc(), colLoc);
+    EXPECT_EQ(domain->rowLoc(), rowLoc);
+    EXPECT_EQ(domain->planeLoc(), planeLoc);
+    EXPECT_EQ(domain->sizeX(), nx);
+    EXPECT_EQ(domain->numReg(), nr);
+    EXPECT_EQ(domain->cost(), cost);
+    
+    delete domain;
+}
+
+TEST_F(LuleshTest, DomainNodeAccessors) {
+    Int_t numRanks = 1;
+    Index_t colLoc = 0;
+    Index_t rowLoc = 0;
+    Index_t planeLoc = 0;
+    Index_t nx = 3;
+    Int_t tp = 1;
+    Int_t nr = 11;
+    Int_t balance = 1;
+    Int_t cost = 1;
+    
+    Domain* domain = new Domain(numRanks, colLoc, rowLoc, planeLoc, nx, tp, nr, balance, cost);
+    ASSERT_NE(domain, nullptr);
+    
+    // Test node-centered accessors
+    Index_t idx = 0;
+    domain->x(idx) = 1.0;
+    domain->y(idx) = 2.0;
+    domain->z(idx) = 3.0;
+    
+    EXPECT_DOUBLE_EQ(domain->x(idx), 1.0);
+    EXPECT_DOUBLE_EQ(domain->y(idx), 2.0);
+    EXPECT_DOUBLE_EQ(domain->z(idx), 3.0);
+    
+    domain->xd(idx) = 4.0;
+    domain->yd(idx) = 5.0;
+    domain->zd(idx) = 6.0;
+    
+    EXPECT_DOUBLE_EQ(domain->xd(idx), 4.0);
+    EXPECT_DOUBLE_EQ(domain->yd(idx), 5.0);
+    EXPECT_DOUBLE_EQ(domain->zd(idx), 6.0);
+    
+    domain->xdd(idx) = 7.0;
+    domain->ydd(idx) = 8.0;
+    domain->zdd(idx) = 9.0;
+    
+    EXPECT_DOUBLE_EQ(domain->xdd(idx), 7.0);
+    EXPECT_DOUBLE_EQ(domain->ydd(idx), 8.0);
+    EXPECT_DOUBLE_EQ(domain->zdd(idx), 9.0);
+    
+    domain->fx(idx) = 10.0;
+    domain->fy(idx) = 11.0;
+    domain->fz(idx) = 12.0;
+    
+    EXPECT_DOUBLE_EQ(domain->fx(idx), 10.0);
+    EXPECT_DOUBLE_EQ(domain->fy(idx), 11.0);
+    EXPECT_DOUBLE_EQ(domain->fz(idx), 12.0);
+    
+    domain->nodalMass(idx) = 13.0;
+    
+    EXPECT_DOUBLE_EQ(domain->nodalMass(idx), 13.0);
+    
+    delete domain;
+}
+
+TEST_F(LuleshTest, DomainElemAccessors) {
+    Int_t numRanks = 1;
+    Index_t colLoc = 0;
+    Index_t rowLoc = 0;
+    Index_t planeLoc = 0;
+    Index_t nx = 3;
+    Int_t tp = 1;
+    Int_t nr = 11;
+    Int_t balance = 1;
+    Int_t cost = 1;
+    
+    Domain* domain = new Domain(numRanks, colLoc, rowLoc, planeLoc, nx, tp, nr, balance, cost);
+    ASSERT_NE(domain, nullptr);
+    
+    // Test element-centered accessors
+    Index_t idx = 0;
+    domain->e(idx) = 1.0;
+    domain->p(idx) = 2.0;
+    domain->q(idx) = 3.0;
+    
+    EXPECT_DOUBLE_EQ(domain->e(idx), 1.0);
+    EXPECT_DOUBLE_EQ(domain->p(idx), 2.0);
+    EXPECT_DOUBLE_EQ(domain->q(idx), 3.0);
+    
+    domain->ql(idx) = 4.0;
+    domain->qq(idx) = 5.0;
+    
+    EXPECT_DOUBLE_EQ(domain->ql(idx), 4.0);
+    EXPECT_DOUBLE_EQ(domain->qq(idx), 5.0);
+    
+    domain->v(idx) = 6.0;
+    domain->volo(idx) = 7.0;
+    domain->delv(idx) = 8.0;
+    domain->vdov(idx) = 9.0;
+    
+    EXPECT_DOUBLE_EQ(domain->v(idx), 6.0);
+    EXPECT_DOUBLE_EQ(domain->volo(idx), 7.0);
+    EXPECT_DOUBLE_EQ(domain->delv(idx), 8.0);
+    EXPECT_DOUBLE_EQ(domain->vdov(idx), 9.0);
+    
+    domain->arealg(idx) = 10.0;
+    domain->ss(idx) = 11.0;
+    domain->elemMass(idx) = 12.0;
+    
+    EXPECT_DOUBLE_EQ(domain->arealg(idx), 10.0);
+    EXPECT_DOUBLE_EQ(domain->ss(idx), 11.0);
+    EXPECT_DOUBLE_EQ(domain->elemMass(idx), 12.0);
+    
+    delete domain;
+}
+
+TEST_F(LuleshTest, DomainParameterAccessors) {
+    Int_t numRanks = 1;
+    Index_t colLoc = 0;
+    Index_t rowLoc = 0;
+    Index_t planeLoc = 0;
+    Index_t nx = 3;
+    Int_t tp = 1;
+    Int_t nr = 11;
+    Int_t balance = 1;
+    Int_t cost = 1;
+    
+    Domain* domain = new Domain(numRanks, colLoc, rowLoc, planeLoc, nx, tp, nr, balance, cost);
+    ASSERT_NE(domain, nullptr);
+    
+    // Test parameter accessors
+    EXPECT_GT(domain->u_cut(), 0.0);
+    EXPECT_GT(domain->e_cut(), 0.0);
+    EXPECT_GT(domain->p_cut(), 0.0);
+    EXPECT_GT(domain->q_cut(), 0.0);
+    EXPECT_GT(domain->v_cut(), 0.0);
+    
+    EXPECT_GT(domain->hgcoef(), 0.0);
+    EXPECT_GT(domain->ss4o3(), 0.0);
+    EXPECT_GT(domain->qstop(), 0.0);
+    
+    domain->time() = 1.0;
+    domain->deltatime() = 0.1;
+    domain->stoptime() = 10.0;
+    
+    EXPECT_DOUBLE_EQ(domain->time(), 1.0);
+    EXPECT_DOUBLE_EQ(domain->deltatime(), 0.1);
+    EXPECT_DOUBLE_EQ(domain->stoptime(), 10.0);
+    
+    domain->cycle() = 5;
+    
+    EXPECT_EQ(domain->cycle(), 5);
+    
+    delete domain;
+}
+
+TEST_F(LuleshTest, DomainSizeCalculations) {
+    Int_t numRanks = 1;
+    Index_t colLoc = 0;
+    Index_t rowLoc = 0;
+    Index_t planeLoc = 0;
+    Index_t nx = 5;
+    Int_t tp = 1;
+    Int_t nr = 11;
+    Int_t balance = 1;
+    Int_t cost = 1;
+    
+    Domain* domain = new Domain(numRanks, colLoc, rowLoc, planeLoc, nx, tp, nr, balance, cost);
+    ASSERT_NE(domain, nullptr);
+    
+    // Test size calculations
+    EXPECT_EQ(domain->sizeX(), nx);
+    EXPECT_EQ(domain->sizeY(), nx);
+    EXPECT_EQ(domain->sizeZ(), nx);
+    
+    // Number of elements should be nx^3
+    EXPECT_EQ(domain->numElem(), nx * nx * nx);
+    
+    // Number of nodes should be (nx+1)^3
+    EXPECT_EQ(domain->numNode(), (nx+1) * (nx+1) * (nx+1));
+    
+    delete domain;
+}
+
+TEST_F(LuleshTest, DomainInitialConditions) {
+    Int_t numRanks = 1;
+    Index_t colLoc = 0;
+    Index_t rowLoc = 0;
+    Index_t planeLoc = 0;
+    Index_t nx = 3;
+    Int_t tp = 1;
+    Int_t nr = 11;
+    Int_t balance = 1;
+    Int_t cost = 1;
+    
+    Domain* domain = new Domain(numRanks, colLoc, rowLoc, planeLoc, nx, tp, nr, balance, cost);
+    ASSERT_NE(domain, nullptr);
+    
+    // Test initial conditions
+    // Volume should be initialized to 1.0 for all elements
+    for (Index_t i = 0; i < domain->numElem(); ++i) {
+        EXPECT_DOUBLE_EQ(domain->v(i), 1.0);
+    }
+    
+    // Energy should be initialized to 0.0 for all elements except possibly the first one
+    for (Index_t i = 1; i < domain->numElem(); ++i) {
+        EXPECT_DOUBLE_EQ(domain->e(i), 0.0);
+    }
+    
+    // Pressure should be initialized to 0.0 for all elements
+    for (Index_t i = 0; i < domain->numElem(); ++i) {
+        EXPECT_DOUBLE_EQ(domain->p(i), 0.0);
+    }
+    
+    // Artificial viscosity should be initialized to 0.0 for all elements
+    for (Index_t i = 0; i < domain->numElem(); ++i) {
+        EXPECT_DOUBLE_EQ(domain->q(i), 0.0);
+    }
+    
+    delete domain;
+}
+
+TEST_F(LuleshTest, DomainNodelistAccess) {
+    Int_t numRanks = 1;
+    Index_t colLoc = 0;
+    Index_t rowLoc = 0;
+    Index_t planeLoc = 0;
+    Index_t nx = 3;
+    Int_t tp = 1;
+    Int_t nr = 11;
+    Int_t balance = 1;
+    Int_t cost = 1;
+    
+    Domain* domain = new Domain(numRanks, colLoc, rowLoc, planeLoc, nx, tp, nr, balance, cost);
+    ASSERT_NE(domain, nullptr);
+    
+    // Test nodelist access
+    // Each element should have 8 nodes
+    for (Index_t i = 0; i < domain->numElem(); ++i) {
+        Index_t* nodeList = domain->nodelist(i);
+        ASSERT_NE(nodeList, nullptr);
+        
+        // Verify that node indices are within valid range
+        for (Index_t j = 0; j < 8; ++j) {
+            EXPECT_GE(nodeList[j], 0);
+            EXPECT_LT(nodeList[j], domain->numNode());
+        }
+    }
+    
+    delete domain;
+}
+
+TEST_F(LuleshTest, DomainVolumeCalculation) {
+    Int_t numRanks = 1;
+    Index_t colLoc = 0;
+    Index_t rowLoc = 0;
+    Index_t planeLoc = 0;
+    Index_t nx = 3;
+    Int_t tp = 1;
+    Int_t nr = 11;
+    Int_t balance = 1;
+    Int_t cost = 1;
+    
+    Domain* domain = new Domain(numRanks, colLoc, rowLoc, planeLoc, nx, tp, nr, balance, cost);
+    ASSERT_NE(domain, nullptr);
+    
+    // Test volume calculation
+    // Each element should have a non-zero volume
+    for (Index_t i = 0; i < domain->numElem(); ++i) {
+        EXPECT_NE(domain->volo(i), 0.0);
+    }
+    
+    // Test element mass calculation
+    // Each element should have a non-zero mass
+    for (Index_t i = 0; i < domain->numElem(); ++i) {
+        EXPECT_NE(domain->elemMass(i), 0.0);
+    }
+    
+    // Test nodal mass calculation
+    // Each node should have a non-zero mass
+    for (Index_t i = 0; i < domain->numNode(); ++i) {
+        EXPECT_NE(domain->nodalMass(i), 0.0);
+    }
+    
+    delete domain;
+}
 
 int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);

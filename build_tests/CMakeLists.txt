@@ -14,9 +14,12 @@ include_directories(${GTEST_INCLUDE_DIRS})
 # Include parent directory for header files
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/..)
 
-# Add source files - only include what we need for testing
+# Add source files - include all necessary files for Domain class testing
 set(LULESH_SOURCES
     ../lulesh-util.cc
+    ../lulesh-init.cc
+    ../lulesh-viz.cc
+    ../lulesh-comm.cc
 )
 
 # Add test executable
