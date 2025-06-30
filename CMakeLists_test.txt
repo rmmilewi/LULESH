@@ -1,0 +1,37 @@
+cmake_minimum_required(VERSION 3.10)
+project(LULESH_TESTS)
+
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# Define USE_MPI=0 for tests
+add_definitions(-DUSE_MPI=0)
+
+# Find GTest package
+find_package(GTest REQUIRED)
+find_package(GMock REQUIRED)
+include_directories(${GTEST_INCLUDE_DIRS} ${GMOCK_INCLUDE_DIRS})
+
+# Include current directory for header files
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+
+# Add source files
+set(LULESH_SOURCES
+    lulesh-util.cc
+    lulesh-init.cc
+    lulesh-viz.cc
+    lulesh-comm.cc
+    lulesh.cc
+)
+
+# Add test executable
+add_executable(lulesh_tests lulesh_tests.cpp ${LULESH_SOURCES})
+
+# Link against GTest and GMock libraries
+target_link_libraries(lulesh_tests ${GTEST_LIBRARIES} ${GMOCK_LIBRARIES} pthread)
+
+# Add test
+add_test(NAME LuleshTests COMMAND lulesh_tests)
+
+# Enable testing
+enable_testing()
