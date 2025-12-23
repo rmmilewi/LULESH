@@ -5,11 +5,15 @@ SHELL = /bin/sh
 
 LULESH_EXEC = lulesh2.0
 
-MPI_INC = /opt/local/include/openmpi
-MPI_LIB = /opt/local/lib
+MPI_INC = D:\Microsoft SDKs\MPI\Include\x64\
+MPI_LIB = D:\Microsoft SDKs\MPI\Lib\
+MPI_BIN = D:\Microsoft MPI\Bin\
+
+
 
 SERCXX = g++ -DUSE_MPI=0
-MPICXX = mpig++ -DUSE_MPI=1
+#MPICXX = mpig++ -DUSE_MPI=1
+MPICXX = g++ -DUSE_MPI=1 -I$(MPI_INC) -L$(MPI_LIB) -lmpi
 CXX = $(MPICXX)
 
 SOURCES2.0 = \

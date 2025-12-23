@@ -16,6 +16,19 @@ A Makefile and a CMake build system are provided.
 Create a build directory and run cmake. Example:
 
   $ mkdir build; cd build; cmake -DCMAKE_BUILD_TYPE=Release -DMPI_CXX_COMPILER=`which mpicxx` ..
+  $ cmake --build .
+
+When building on Windows, you can use the following commands:
+
+  $ cmake -DCMAKE_BUILD_TYPE=Release -DMPI_CXX_COMPILER='g++ -DUSE_MPI=1 -I$(MPI_INC) -L$(MPI_LIB) -lmsmpi' --log-level=VERBOSE ..
+  $ cmake --build .
+
+Where MPI_INC points to the Microsoft MPI include directory and MPI_LIB points to the Microsoft MPI lib directory. On my personal machine, these are...
+
+MPI_INC = D:\Microsoft SDKs\MPI\Include
+MPI_LIB = D:\Microsoft SDKs\MPI\Lib\x64
+
+On Windows I installed mingw64 for my compilers, cmake tooling, etc. and added it to my path ("D:\mingw64\bin"). You will need to adjust the paths to match your installation.
 
 CMake variables:
 
@@ -29,6 +42,55 @@ CMake variables:
   WITH_SILO=On|Off      Build with support for SILO. (Default: Off).
   
   SILO_DIR              Path to SILO library (only needed when WITH_SILO is "On")
+
+*** Building and Running a Plain, Serial Version of LULESH ***
+
+As a sanity check, you can test whether the code is working without MPI or OpenMP by using the following commands to build it:
+
+  $ cmake -DCMAKE_BUILD_TYPE=Debug -DWITH_MPI=Off -DWITH_OPENMP=Off --log-level=VERBOSE ..
+  $ cmake --build .
+
+Call the resulting binary with:
+
+  $ ./lulesh2.0 -p
+
+to run with default values for the parameters, with -p allowing you to see the progress of the simulation. If it works, you should see
+something like this...
+
+```
+$ .\lulesh2.0 -p
+Running problem size 30^3 per domain until completion
+Num processors: 1
+Num threads: 8
+Total number of elements: 27000
+
+To run other sizes, use -s <integer>.
+To run a fixed number of iterations, use -i <integer>.
+To run a more or less balanced region set, use -b <integer>.
+To change the relative costs of regions, use -c <integer>.
+To print out progress, use -p
+To write an output file for VisIt, use -v
+See help (-h) for more options
+
+cycle = 1, time = 3.876087e-06, dt=3.876087e-06
+cycle = 2, time = 8.527392e-06, dt=4.651305e-06
+cycle = 3, time = 1.012168e-05, dt=1.594290e-06
+[...]
+Run completed:
+   Problem size        =  30
+   MPI tasks           =  1
+   Iteration count     =  932
+   Final Origin Energy =  2.025075e+05
+   Testing Plane 0 of Energy Array on rank 0:
+        MaxAbsDiff   = 6.912160e-11
+        TotalAbsDiff = 8.221599e-10
+        MaxRelDiff   = 1.470446e-12
+
+Elapsed time         =         73 (s)
+Grind time (us/z/c)  =    2.90632 (per dom)  ( 73.134637 overall)
+FOM                  =  344.07773 (z/s)
+```
+
 
 *** Notable changes in LULESH 2.0 ***
 
