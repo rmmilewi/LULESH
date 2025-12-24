@@ -20,7 +20,7 @@ Create a build directory and run cmake. Example:
 
 When building on Windows, you can use the following commands:
 
-  $ cmake -DCMAKE_BUILD_TYPE=Release -DMPI_CXX_COMPILER='g++ -DUSE_MPI=1 -I$(MPI_INC) -L$(MPI_LIB) -lmsmpi' --log-level=VERBOSE ..
+  $ cmake -DCMAKE_BUILD_TYPE=Release -DMPI_CXX='g++ -DUSE_MPI=1 -I$(MPI_INC) -L$(MPI_LIB) -lmsmpi' --log-level=VERBOSE ..
   $ cmake --build .
 
 Where MPI_INC points to the Microsoft MPI include directory and MPI_LIB points to the Microsoft MPI lib directory. On my personal machine, these are...

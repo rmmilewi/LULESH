@@ -20,11 +20,11 @@ MPICXX = g++ -DUSE_MPI=1 -I$(MPI_INC) -L$(MPI_LIB) -lmsmpi
 CXX = $(MPICXX)
 
 SOURCES2.0 = \
-	lulesh.cc \
-	lulesh-comm.cc \
-	lulesh-viz.cc \
-	lulesh-util.cc \
-	lulesh-init.cc
+	src/lulesh.cc \
+	src/lulesh-comm.cc \
+	src/lulesh-viz.cc \
+	src/lulesh-util.cc \
+	src/lulesh-init.cc
 OBJECTS2.0 = $(SOURCES2.0:.cc=.o)
 
 #Default build suggestions with OpenMP for g++
@@ -49,7 +49,7 @@ LDFLAGS = -g -O3 -fopenmp
 #CXXFLAGS = -g -DVIZ_MESH -I${SILO_INCDIR} -Wall -Wno-pragmas
 #LDFLAGS = -g -L${SILO_LIBDIR} -Wl,-rpath -Wl,${SILO_LIBDIR} -lsiloh5 -lhdf5
 
-.cc.o: lulesh.h
+.cc.o: src/lulesh.h
 	@echo "Building $<"
 	$(CXX) -c $(CXXFLAGS) -o $@  $<
 

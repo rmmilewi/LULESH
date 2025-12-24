@@ -43,11 +43,11 @@ if (WITH_SILO)
 endif()
 
 set(LULESH_SOURCES
-  lulesh-comm.cc
-  lulesh-init.cc
-  lulesh-util.cc
-  lulesh-viz.cc
-  lulesh.cc)
+  src/lulesh-comm.cc
+  src/lulesh-init.cc
+  src/lulesh-util.cc
+  src/lulesh-viz.cc
+  src/lulesh.cc)
 
 set(LULESH_EXEC lulesh2.0)
 
