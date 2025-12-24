@@ -6,6 +6,8 @@ option(WITH_MPI    "Build LULESH with MPI"          TRUE)
 option(WITH_OPENMP "Build LULESH with OpenMP"       TRUE)
 option(WITH_SILO   "Build LULESH with silo support" FALSE)
 
+enable_testing()
+
 if (WITH_MPI)
   find_package(MPI REQUIRED)
   include_directories(${MPI_C_INCLUDE_PATH} ${MPI_CXX_INCLUDE_PATH})
@@ -46,10 +48,15 @@ set(LULESH_SOURCES
   src/lulesh-comm.cc
   src/lulesh-init.cc
   src/lulesh-util.cc
-  src/lulesh-viz.cc
-  src/lulesh.cc)
+  src/lulesh-viz.cc)
 
 set(LULESH_EXEC lulesh2.0)
 
-add_executable(${LULESH_EXEC} ${LULESH_SOURCES})
+add_library(lulesh_lib OBJECT ${LULESH_SOURCES})
+target_link_libraries(lulesh_lib ${LULESH_EXTERNAL_LIBS})
+
+add_executable(${LULESH_EXEC} src/lulesh.cc $<TARGET_OBJECTS:lulesh_lib>)
+target_link_libraries(${LULESH_EXEC} ${LULESH_EXTERNAL_LIBS})
+
+add_subdirectory(test)
 target_link_libraries(${LULESH_EXEC} ${LULESH_EXTERNAL_LIBS})

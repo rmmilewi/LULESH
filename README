@@ -1,4 +1,21 @@
-This is the README for LULESH 2.0
+
+*** Running Tests ***
+
+A correctness test using GoogleTest is provided in the `test` directory.
+To run the tests, first build the project with testing enabled (which is the default in the updated CMake configuration).
+
+  $ cd build
+  $ cmake -DCMAKE_BUILD_TYPE=Release -DMPI_CXX='...' ...
+  $ cmake --build .
+
+Then you can run the test executable directly:
+
+  $ ./test/lulesh_test.exe
+
+Or use CTest:
+
+  $ ctest -C Release
+
 
 More information including LULESH 1.0 can be found at https://codesign.llnl.gov/lulesh.php
 
